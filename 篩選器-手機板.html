@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>產品篩選器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 1rem;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column; /* 手機版：垂直排列 */
+            width: 100%;
+            max-width: 1200px;
+            gap: 1.5rem; /* 調整間距 */
+        }
+
+        .filter-panel {
+            background-color: #fff;
+            padding: 1rem; /* 調整內距 */
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            min-width: 100%; /* 手機版：佔滿寬度 */
+            height: fit-content;
+        }
+
+        .results-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* 調整間距 */
+        }
+
+        .filter-group {
+            margin-bottom: 1rem; /* 調整間距 */
+        }
+
+        .filter-group h3 {
+            font-size: 1rem; /* 調整字體大小 */
+            font-weight: bold;
+            color: #4a4a4a;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .filter-option {
+            background-color: #e2e8f0;
+            color: #4a5568;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            user-select: none;
+        }
+
+        .filter-option:hover {
+            background-color: #cbd5e1;
+        }
+
+        .filter-option.active {
+            background-color: #4c51bf;
+            color: #fff;
+        }
+
+        .product-card {
+            background-color: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .product-image {
+            width: 120px; /* 手機版：調整圖片大小 */
+            height: 120px; /* 手機版：調整圖片大小 */
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+            border: 1px solid #e0e0e0;
+            cursor: zoom-in;
+        }
+
+        .product-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-details h4 {
+            font-size: 1rem; /* 調整字體大小 */
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+        }
+
+        .product-details p {
+            font-size: 0.875rem; /* 調整字體大小 */
+            color: #718096;
+            margin-bottom: 0.25rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Modal (點擊放大圖片的浮動視窗) */
+        .image-modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s;
+        }
+
+        .image-modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .modal-close-btn:hover,
+        .modal-close-btn:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        /* 電腦版樣式：當螢幕寬度 >= 769px 時生效 */
+        @media (min-width: 769px) {
+            body {
+                padding: 2rem;
+            }
+            .container {
+                flex-direction: row; /* 電腦版：恢復為水平排列 */
+                gap: 2rem;
+            }
+            .filter-panel {
+                flex: 1 1 250px;
+                min-width: 250px;
+                padding: 1.5rem;
+                position: sticky;
+                top: 2rem;
+            }
+            .results-panel {
+                flex: 3 1 700px;
+                gap: 2rem;
+            }
+            .filter-group {
+                margin-bottom: 1.5rem;
+            }
+            .filter-group h3 {
+                font-size: 1.125rem;
+                margin-bottom: 0.75rem;
+            }
+            .product-image {
+                width: 150px;
+                height: 150px;
+            }
+            .product-details h4 {
+                font-size: 1.25rem;
+            }
+            .product-details p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="filter-panel">
+        <h2 class="text-2xl font-bold mb-4">篩選器</h2>
+        
+        <div class="filter-group">
+            <h3>碟仔</h3>
+            <div id="filter-碟仔" class="filter-options">
+                <div class="filter-option" data-filter-value="HT">HT</div>
+                <div class="filter-option" data-filter-value="HJ1.1 (22mm)">HJ1.1 (22mm)</div>
+                <div class="filter-option" data-filter-value="HM1.A">HM1.A</div>
+                <div class="filter-option" data-filter-value="HJ1.0 (19mm)">HJ1.0 (19mm)</div>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <h3>把手(長度)</h3>
+            <div id="filter-把手(長度)" class="filter-options">
+                <div class="filter-option" data-filter-value="1指">1指</div>
+                <div class="filter-option" data-filter-value="2指">2指</div>
+                <div class="filter-option" data-filter-value="3指">3指</div>
+                <div class="filter-option" data-filter-value="2.5指">2.5指</div>
+                <div class="filter-option" data-filter-value="4指">4指</div>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <h3>主體</h3>
+            <div id="filter-主體" class="filter-options">
+                <div class="filter-option" data-filter-value="HM6.0">HM6.0</div>
+                <div class="filter-option" data-filter-value="SB2.2">SB2.2</div>
+                <div class="filter-option" data-filter-value="HM2.0">HM2.0</div>
+                <div class="filter-option" data-filter-value="FM">FM</div>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <h3>碟盤</h3>
+            <div id="filter-碟盤" class="filter-options">
+                <div class="filter-option" data-filter-value="2.3">2.3</div>
+                <div class="filter-option" data-filter-value="1.8">1.8</div>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <h3>來令片</h3>
+            <div id="filter-來令片" class="filter-options">
+                <div class="filter-option" data-filter-value="5mm">5mm</div>
+                <div class="filter-option" data-filter-value="4mm">4mm</div>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="results-panel" id="product-list">
+        </div>
+</div>
+
+<div id="image-modal" class="image-modal">
+    <span class="modal-close-btn" id="modal-close-btn">&times;</span>
+    <img class="modal-content" id="modal-image">
+</div>
+
+<script>
+// 這裡的程式碼負責篩選邏輯和頁面互動
+document.addEventListener('DOMContentLoaded', () => {
+
+    // 模擬你的產品資料庫，你可以自行修改或新增內容
+    const products = [
+        { id: 'p1', 碟仔: 'HT', '把手(長度)': '1指', 主體: 'HM6.0', 碟盤: '2.3', 來令片: '5mm', 型號: 'HD-M6041', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-M6041' },
+        { id: 'p2', 碟仔: 'HT', '把手(長度)': '2指', 主體: 'HM6.0', 碟盤: '2.3', 來令片: '5mm', 型號: 'HD-M6040', 圖片: 'https://tektro.com/upload/c2408OexzYbbYLAaxfFm1756779616.png' },
+        { id: 'p3', 碟仔: 'HT', '把手(長度)': '2指', 主體: 'SB2.2', 碟盤: '2.3', 來令片: '5mm', 型號: 'HD-M6020', 圖片: 'https://tektro.com/upload/EY0rWCGRQffh3CYPNpE21756779746.png' },
+        { id: 'p4', 碟仔: 'HT', '把手(長度)': '3指', 主體: 'HM6.0', 碟盤: '2.3', 來令片: '5mm', 型號: 'HD-T6040', 圖片: 'https://tektro.com/upload/c2408OexzYbbYLAaxfFm1756779616.png' },
+        { id: 'p5', 碟仔: 'HT', '把手(長度)': '3指', 主體: 'SB2.2', 碟盤: '2.3', 來令片: '5mm', 型號: 'HD-T6020', 圖片: 'https://tektro.com/upload/EY0rWCGRQffh3CYPNpE21756779746.png' },
+        { id: 'p6', 碟仔: 'HM1.A', '把手(長度)': '2.5指', 主體: 'HM6.0', 碟盤: '2.3', 來令片: '5mm', 型號: 'HD-E5140', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-E5140' },
+        { id: 'p7', 碟仔: 'HM1.A', '把手(長度)': '2.5指', 主體: 'HM2.0', 碟盤: '1.8', 來令片: '4mm', 型號: 'HD-E3120', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-E3120' },
+        { id: 'p8', 碟仔: 'HM1.A', '把手(長度)': '2.5指', 主體: 'FM', 碟盤: '1.8', 來令片: '4mm', 型號: 'HD-E3110', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-E3110' },
+        { id: 'p9', 碟仔: 'HJ1.0 (19mm)', '把手(長度)': '2.5指', 主體: 'HM2.0', 碟盤: '1.8', 來令片: '4mm', 型號: 'HD-J3129', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-J3129' },
+        { id: 'p10', 碟仔: 'HJ1.0 (19mm)', '把手(長度)': '2.5指', 主體: 'FM', 碟盤: '1.8', 來令片: '4mm', 型號: 'HD-J3119', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-J3119' },
+        { id: 'p11', 碟仔: 'HJ1.1 (22mm)', '把手(長度)': '2.5指', 主體: 'HM6.0', 碟盤: '2.3', 來令片: '5mm', 型號: 'HD-M5140', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-M5140' },
+        { id: 'p12', 碟仔: 'HJ1.1 (22mm)', '把手(長度)': '2.5指', 主體: 'HM6.0', 碟盤: '2.3', 來令片: '5mm', 型號: 'HD-M5141', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-M5141' },
+        { id: 'p13', 碟仔: 'HJ1.1 (22mm)', '把手(長度)': '2.5指', 主體: 'SB2.2', 碟盤: '2.3', 來令片: '5mm', 型號: 'HD-M5120', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-M5120' },
+        { id: 'p14', 碟仔: 'HJ1.1 (22mm)', '把手(長度)': '2.5指', 主體: 'HM2.0', 碟盤: '1.8', 來令片: '4mm', 型號: 'HD-M3120', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-M3120' },
+        { id: 'p15', 碟仔: 'HJ1.1 (22mm)', '把手(長度)': '4指', 主體: 'HM2.0', 碟盤: '1.8', 來令片: '4mm', 型號: 'HD-T3120', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-T3120' },
+        { id: 'p16', 碟仔: 'HJ1.1 (22mm)', '把手(長度)': '4指', 主體: 'HM2.0', 碟盤: '1.8', 來令片: '4mm', 型號: 'HD-T3120', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-T3120' },
+        { id: 'p17', 碟仔: 'HJ1.1 (22mm)', '把手(長度)': '4指', 主體: 'FM', 碟盤: '1.8', 來令片: '4mm', 型號: 'HD-J3110', 圖片: 'https://placehold.co/150x150/e8e8e8/333333?text=HD-J3110' },
+    ];
+
+    const productList = document.getElementById('product-list');
+    const filterOptions = document.querySelectorAll('.filter-option');
+    let currentFilters = {};
+
+    // 獲取 Modal 相關元素
+    const imageModal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+
+    // 開啟 Modal 函數
+    function openModal(imageSrc) {
+        modalImage.src = imageSrc;
+        imageModal.classList.add('show');
+    }
+
+    // 關閉 Modal 函數
+    function closeModal() {
+        imageModal.classList.remove('show');
+    }
+
+    // 綁定關閉按鈕事件
+    modalCloseBtn.addEventListener('click', closeModal);
+
+    // 點擊 Modal 背景關閉視窗
+    imageModal.addEventListener('click', (event) => {
+        if (event.target === imageModal) {
+            closeModal();
+        }
+    });
+
+    // 渲染所有產品
+    function renderProducts(filteredProducts) {
+        productList.innerHTML = '';
+        if (filteredProducts.length === 0) {
+            productList.innerHTML = '<p class="text-gray-500 text-center w-full">沒有符合條件的產品。</p>';
+        }
+        filteredProducts.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card';
+            productCard.innerHTML = `
+                <img src="${product.圖片}" alt="產品圖片" class="product-image">
+                <div class="product-details">
+                    <h4>${product.型號}</h4>
+                    <p>碟仔: ${product.碟仔}</p>
+                    <p>把手(長度): ${product['把手(長度)']}</p>
+                    <p>主體: ${product.主體}</p>
+                    <p>碟盤: ${product.碟盤}</p>
+                    <p>來令片: ${product.來令片}</p>
+                </div>
+            `;
+            // 為圖片添加點擊事件監聽器，點擊後調用 openModal
+            const imageElement = productCard.querySelector('.product-image');
+            imageElement.addEventListener('click', () => openModal(product.圖片));
+
+            productList.appendChild(productCard);
+        });
+    }
+
+    // 執行篩選
+    function applyFilters() {
+        const filtered = products.filter(product => {
+            // 檢查每個產品是否符合所有篩選條件
+            for (const key in currentFilters) {
+                // 如果該篩選類別有被選擇，且產品的屬性不符合，就回傳 false
+                if (currentFilters[key].length > 0 && !currentFilters[key].includes(product[key])) {
+                    return false;
+                }
+            }
+            return true;
+        });
+        renderProducts(filtered);
+    }
+
+    // 初始化每個篩選類別的空陣列
+    ['碟仔', '把手(長度)', '主體', '碟盤', '來令片'].forEach(category => {
+        currentFilters[category] = [];
+    });
+
+    // 監聽篩選器的點擊事件
+    filterOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            // 點擊後切換 active 狀態
+            option.classList.toggle('active');
+
+            const filterCategory = option.parentElement.id.replace('filter-', '');
+            const filterValue = option.getAttribute('data-filter-value');
+            
+            // 根據 active 狀態更新篩選條件
+            if (option.classList.contains('active')) {
+                currentFilters[filterCategory].push(filterValue);
+            } else {
+                const index = currentFilters[filterCategory].indexOf(filterValue);
+                if (index > -1) {
+                    currentFilters[filterCategory].splice(index, 1);
+                }
+            }
+
+            // 重新應用篩選器
+            applyFilters();
+        });
+    });
+
+    // 初始渲染所有產品
+    renderProducts(products);
+
+});
+</script>
+
+</body>
+</html>
